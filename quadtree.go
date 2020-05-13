@@ -24,8 +24,13 @@ func (q *QuadTree) Intersect(query Rect) []*Value {
 }
 
 //Insert new Value into Quadtree
-func (q *QuadTree) Insert(value Value) {
+func (q *QuadTree) Insert(value *Value) {
 	q.Root.insert(value)
+}
+
+//delete Value from Quadtree (expensive!)
+func (q *QuadTree) Delete(value *Value) {
+	q.Root.delete(value)
 }
 
 //Return the number of all nodes which contains a non nil Value
@@ -167,7 +172,7 @@ func (n *Node) queryIndexes(r Rect) []float64 {
 
 }
 
-func (n *Node) insert(value Value) {
+func (n *Node) insert(value *Value) {
 
 	if len(n.Nodes) > 0 {
 		index := n.getIndex(value.Point)
@@ -178,8 +183,35 @@ func (n *Node) insert(value Value) {
 		return
 	}
 
-	n.Value = &value
+	n.Value = value
 	n.split()
+}
+
+func (n *Node) delete(value *Value) bool {
+	if n.Value == value {
+		return true
+	}
+
+	if n.Nodes == nil || len(n.Nodes) == 0 {
+		return false
+	} else {
+		for _, subNode := range n.Nodes {
+			if subNode.delete(value) {
+				//Return all elements from subNodes, query with subNodes bounds
+				values := subNode.retrieve(subNode.Rect)
+				//Crop tree
+				subNode.clear()
+				for _, v := range values {
+					//Prevent from reinserting
+					if v != value {
+						n.insert(v)
+					}
+				}
+			}
+		}
+	}
+
+	return false
 }
 
 func (n *Node) retrieve(query Rect) []*Value {

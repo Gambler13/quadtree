@@ -16,7 +16,7 @@ func ExampleNewTree() {
 
 	//Insert values
 	for i := 0; i < 500; i++ {
-		qt.Insert(Value{
+		qt.Insert(&Value{
 			//Set position of values
 			Point: Point{
 				X: rand.Float64()*bounds.Width + bounds.X,
@@ -69,7 +69,7 @@ func TestNewTree(t *testing.T) {
 	bounds := NewRect(0, 0, 235, 346.3)
 	n := 500
 
-	qt := createRandomTree(n, bounds)
+	qt, _ := createRandomTree(n, bounds)
 
 	if qt.Size() != n {
 		t.Errorf("quadtree has a non expected size: %d -> %d", qt.Size(), n)
@@ -80,7 +80,7 @@ func TestQuadTree_Clear(t *testing.T) {
 	bounds := NewRect(50620, 5023, 9894032, -346.3)
 	n := 200
 
-	qt := createRandomTree(n, bounds)
+	qt, _ := createRandomTree(n, bounds)
 
 	if qt.Size() != n {
 		t.Errorf("quadtree has a non expected size: %d -> %d", qt.Size(), n)
@@ -103,7 +103,7 @@ func TestQuadTree_Retrieve(t *testing.T) {
 			X: rand.Float64()*bounds.Width + bounds.X,
 			Y: rand.Float64()*bounds.Height + bounds.Y,
 		}
-		qt.Insert(Value{
+		qt.Insert(&Value{
 			Point: p,
 			Data:  rand.Int(),
 		})
@@ -135,7 +135,7 @@ func TestQuadTree_Retrieve(t *testing.T) {
 func TestQuadTree_GetNodeRects(t *testing.T) {
 	bounds := NewRect(0, 500, 500, 500)
 	n := 200
-	qt := createRandomTree(n, bounds)
+	qt, _ := createRandomTree(n, bounds)
 	rects := qt.GetNodeRects()
 	if len(rects) < n {
 		t.Errorf("node rects should be greater than inserted points")
@@ -146,9 +146,9 @@ func TestQuadTree_GetNodeRects(t *testing.T) {
 func BenchmarkQuadTree_Insert(t *testing.B) {
 	bounds := NewRect(0, 0, 1000, 1000)
 	qt := NewTree(bounds)
-	values := make([]Value, t.N)
+	values := make([]*Value, t.N)
 	for i := 0; i < t.N; i++ {
-		values[i] = Value{
+		values[i] = &Value{
 			Point: Point{
 				X: rand.Float64() * bounds.Width,
 				Y: rand.Float64() * bounds.Height,
@@ -165,7 +165,7 @@ func BenchmarkQuadTree_Insert(t *testing.B) {
 
 func BenchmarkQuadTree_Retrieve(t *testing.B) {
 	bounds := NewRect(0, 0, 100000, 100000)
-	qt := createRandomTree(50000, bounds)
+	qt, _ := createRandomTree(50000, bounds)
 	rects := make([]Rect, t.N)
 
 	for i := 0; i < t.N; i++ {
@@ -178,18 +178,21 @@ func BenchmarkQuadTree_Retrieve(t *testing.B) {
 	}
 }
 
-func createRandomTree(n int, bounds Rect) QuadTree {
+func createRandomTree(n int, bounds Rect) (QuadTree, []*Value) {
 	qt := NewTree(bounds)
+	values := make([]*Value, n)
 	for i := 0; i < n; i++ {
-		qt.Insert(Value{
+		v := &Value{
 			Point: Point{
 				X: rand.Float64()*bounds.Width + bounds.X,
 				Y: rand.Float64()*bounds.Height + bounds.Y,
 			},
 			Data: rand.Int(),
-		})
+		}
+		values[i] = v
+		qt.Insert(v)
 	}
-	return qt
+	return qt, values
 }
 
 func TestQuadTree_Depth(t *testing.T) {
@@ -202,7 +205,7 @@ func TestQuadTree_Depth(t *testing.T) {
 			X: float64(i * 10),
 			Y: 10,
 		}
-		qt.Insert(Value{
+		qt.Insert(&Value{
 			Point: p,
 			Data:  rand.Int(),
 		})
@@ -212,4 +215,18 @@ func TestQuadTree_Depth(t *testing.T) {
 	if qt.Depth() != 4 {
 		t.Errorf("unecpected depth %d", qt.Depth())
 	}
+}
+
+func TestQuadTree_Delete(t *testing.T) {
+	bounds := NewRect(0, 0, 500, 500)
+	qt, v := createRandomTree(500, bounds)
+
+	qt.Delete(v[rand.Intn(len(v)-1)])
+	qt.Delete(v[rand.Intn(len(v)-1)])
+	qt.Delete(v[rand.Intn(len(v)-1)])
+
+	if qt.Size() != 497 {
+		t.Errorf("unexpected size after delete: %d (497)", qt.Size())
+	}
+
 }
