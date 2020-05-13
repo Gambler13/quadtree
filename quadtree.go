@@ -1,7 +1,5 @@
 package quadtree
 
-import "fmt"
-
 type QuadTree struct {
 	Root Node
 }
@@ -51,7 +49,16 @@ type Rect struct {
 }
 
 func NewRect(x, y, width, height float64) Rect {
-	//TODO check for negative values
+	if width < 0 {
+		width = -width
+		x -= width
+	}
+
+	if height < 0 {
+		height = -height
+		y -= height
+	}
+
 	return Rect{
 		Point: Point{
 			X: x,
@@ -138,8 +145,6 @@ func (n *Node) queryIndexes(r Rect) []float64 {
 
 }
 
-var count = 0
-
 func (n *Node) insert(value Value) {
 
 	if len(n.Nodes) > 0 {
@@ -147,9 +152,6 @@ func (n *Node) insert(value Value) {
 		if index != -1 {
 			into := n.Nodes[index]
 			into.insert(value)
-		} else {
-			count++
-			fmt.Println(count)
 		}
 		return
 	}
