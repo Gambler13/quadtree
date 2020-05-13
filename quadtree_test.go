@@ -94,63 +94,35 @@ func TestQuadTree_Clear(t *testing.T) {
 }
 
 func TestQuadTree_Retrieve(t *testing.T) {
-	//Simple
-	bounds := NewRect(0, 0, 40, 40)
-	n := 4
+	bounds := NewRect(0, 500, 5000, 1500)
+	n := rand.Intn(500) + 1000 //Between 500-1500 points
 	qt := NewTree(bounds)
-	qt.Insert(Value{
-		Point: Point{
-			X: 5,
-			Y: 5,
-		},
-		Data: 0,
-	})
+	points := make([]Point, n)
+	for i := 0; i < n; i++ {
+		p := Point{
+			X: rand.Float64()*bounds.Width + bounds.X,
+			Y: rand.Float64()*bounds.Height + bounds.Y,
+		}
+		qt.Insert(Value{
+			Point: p,
+			Data:  rand.Int(),
+		})
+		points[i] = p
+	}
 
-	qt.Insert(Value{
-		Point: Point{
-			X: 25,
-			Y: 35,
-		},
-		Data: 1,
-	})
-
-	qt.Insert(Value{
-		Point: Point{
-			X: 25,
-			Y: 5,
-		},
-		Data: 2,
-	})
-
-	qt.Insert(Value{
-		Point: Point{
-			X: 1,
-			Y: 38,
-		},
-		Data: 4,
-	})
-
-	query := NewRect(0, 0, 40, 30)
+	query := NewRect(0, 500, 550, 550)
 	result := qt.Intersect(query)
-	if len(result) != 2 {
-		t.Errorf("unexpected result length (%d/2)", len(result))
+
+	//Loop over all points
+	nIntersecting := 0
+	for _, p := range points {
+		if query.contains(p) {
+			nIntersecting++
+		}
 	}
 
-	query = NewRect(0, 150, 55, 550)
-	result = qt.Intersect(query)
-	if len(result) >= n {
-		t.Errorf("unexpected result length")
-	}
-
-	//Extended
-	bounds = NewRect(0, 500, 500, 500)
-	n = 200
-	qt = createRandomTree(n, bounds)
-
-	query = NewRect(0, 500, 550, 550)
-	result = qt.Intersect(query)
-	if len(result) != n {
-		t.Errorf("unexpected result length (%d)", len(result))
+	if len(result) != nIntersecting {
+		t.Errorf("unexpected result length (%d), expected: %d", len(result), nIntersecting)
 	}
 
 	query = NewRect(0, 150, 55, 550)
@@ -218,4 +190,26 @@ func createRandomTree(n int, bounds Rect) QuadTree {
 		})
 	}
 	return qt
+}
+
+func TestQuadTree_Depth(t *testing.T) {
+	bounds := NewRect(0, 0, 100, 100)
+	n := 5
+	qt := NewTree(bounds)
+	points := make([]Point, n)
+	for i := 0; i < n; i++ {
+		p := Point{
+			X: float64(i * 10),
+			Y: 10,
+		}
+		qt.Insert(Value{
+			Point: p,
+			Data:  rand.Int(),
+		})
+		points[i] = p
+	}
+
+	if qt.Depth() != 4 {
+		t.Errorf("unecpected depth %d", qt.Depth())
+	}
 }

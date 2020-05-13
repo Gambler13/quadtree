@@ -33,6 +33,11 @@ func (q *QuadTree) Size() int {
 	return q.Root.size()
 }
 
+//Return the depth of the tree
+func (q *QuadTree) Depth() int {
+	return q.Root.depth()
+}
+
 //Return all bounding rects from nodes
 func (q *QuadTree) GetNodeRects() []Rect {
 	return q.Root.getNodeRect()
@@ -89,7 +94,7 @@ func NewRect(x, y, width, height float64) Rect {
 type Node struct {
 	Rect
 	Nodes map[float64]*Node
-	Level float64
+	Level int
 	Value *Value
 }
 
@@ -280,4 +285,21 @@ func (n *Node) clear() {
 		}
 		n.Nodes = nil
 	}
+}
+
+func (n *Node) depth() (level int) {
+	level = n.Level
+
+	if n.Nodes == nil || len(n.Nodes) == 0 {
+		return level
+	} else {
+		for _, subNode := range n.Nodes {
+			subLevel := subNode.depth()
+			if subLevel > level {
+				level = subLevel
+			}
+		}
+	}
+
+	return
 }
