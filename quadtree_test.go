@@ -28,7 +28,7 @@ func ExampleNewTree() {
 	}
 
 	//Define 2D query range
-	query := NewRect(229, 461, 631, 181)
+	query := NewRect(229, 461, 100, 100)
 
 	//Query tree
 	results := qt.Retrieve(query)
@@ -94,14 +94,63 @@ func TestQuadTree_Clear(t *testing.T) {
 }
 
 func TestQuadTree_Retrieve(t *testing.T) {
-	bounds := NewRect(0, 500, 500, 500)
-	n := 200
-	qt := createRandomTree(n, bounds)
+	//Simple
+	bounds := NewRect(0, 0, 40, 40)
+	n := 4
+	qt := NewTree(bounds)
+	qt.Insert(Value{
+		Point: Point{
+			X: 5,
+			Y: 5,
+		},
+		Data: 0,
+	})
 
-	query := NewRect(0, 500, 550, 550)
+	qt.Insert(Value{
+		Point: Point{
+			X: 25,
+			Y: 35,
+		},
+		Data: 1,
+	})
+
+	qt.Insert(Value{
+		Point: Point{
+			X: 25,
+			Y: 5,
+		},
+		Data: 2,
+	})
+
+	qt.Insert(Value{
+		Point: Point{
+			X: 1,
+			Y: 38,
+		},
+		Data: 4,
+	})
+
+	query := NewRect(0, 0, 40, 30)
 	result := qt.Retrieve(query)
-	if len(result) != n {
+	if len(result) != 2 {
+		t.Errorf("unexpected result length (%d/2)", len(result))
+	}
+
+	query = NewRect(0, 150, 55, 550)
+	result = qt.Retrieve(query)
+	if len(result) >= n {
 		t.Errorf("unexpected result length")
+	}
+
+	//Extended
+	bounds = NewRect(0, 500, 500, 500)
+	n = 200
+	qt = createRandomTree(n, bounds)
+
+	query = NewRect(0, 500, 550, 550)
+	result = qt.Retrieve(query)
+	if len(result) != n {
+		t.Errorf("unexpected result length (%d)", len(result))
 	}
 
 	query = NewRect(0, 150, 55, 550)

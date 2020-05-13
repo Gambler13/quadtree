@@ -13,7 +13,14 @@ func NewTree(bounds Rect) QuadTree {
 
 //Retrieve all Values inside the query rectangle
 func (q *QuadTree) Retrieve(query Rect) []*Value {
-	return q.Root.retrieve(query)
+	results := q.Root.retrieve(query)
+	filtered := results[:0]
+	for _, r := range results {
+		if query.contains(r.Point) {
+			filtered = append(filtered, r)
+		}
+	}
+	return filtered
 }
 
 //Insert new Value into Quadtree
@@ -46,6 +53,16 @@ type Rect struct {
 	Point
 	Height float64
 	Width  float64
+}
+
+func (r *Rect) contains(p Point) bool {
+	if p.X < r.X || p.Y < r.Y {
+		return false
+	}
+	if p.X > r.X+r.Width || p.Y > r.Y+r.Height {
+		return false
+	}
+	return true
 }
 
 func NewRect(x, y, width, height float64) Rect {
