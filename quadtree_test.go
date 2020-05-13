@@ -31,7 +31,7 @@ func ExampleNewTree() {
 	query := NewRect(229, 461, 100, 100)
 
 	//Query tree
-	results := qt.Retrieve(query)
+	results := qt.Intersect(query)
 
 	fmt.Printf("Results (%d):\n", len(results))
 	for i := range results {
@@ -131,13 +131,13 @@ func TestQuadTree_Retrieve(t *testing.T) {
 	})
 
 	query := NewRect(0, 0, 40, 30)
-	result := qt.Retrieve(query)
+	result := qt.Intersect(query)
 	if len(result) != 2 {
 		t.Errorf("unexpected result length (%d/2)", len(result))
 	}
 
 	query = NewRect(0, 150, 55, 550)
-	result = qt.Retrieve(query)
+	result = qt.Intersect(query)
 	if len(result) >= n {
 		t.Errorf("unexpected result length")
 	}
@@ -148,13 +148,13 @@ func TestQuadTree_Retrieve(t *testing.T) {
 	qt = createRandomTree(n, bounds)
 
 	query = NewRect(0, 500, 550, 550)
-	result = qt.Retrieve(query)
+	result = qt.Intersect(query)
 	if len(result) != n {
 		t.Errorf("unexpected result length (%d)", len(result))
 	}
 
 	query = NewRect(0, 150, 55, 550)
-	result = qt.Retrieve(query)
+	result = qt.Intersect(query)
 	if len(result) >= n {
 		t.Errorf("unexpected result length")
 	}
@@ -202,7 +202,7 @@ func BenchmarkQuadTree_Retrieve(t *testing.B) {
 
 	t.ResetTimer()
 	for i := 0; i < t.N; i++ {
-		qt.Retrieve(rects[i])
+		qt.Intersect(rects[i])
 	}
 }
 

@@ -11,8 +11,8 @@ func NewTree(bounds Rect) QuadTree {
 	}}
 }
 
-//Retrieve all Values inside the query rectangle
-func (q *QuadTree) Retrieve(query Rect) []*Value {
+//Intersect all Values inside the query rectangle
+func (q *QuadTree) Intersect(query Rect) []*Value {
 	results := q.Root.retrieve(query)
 	filtered := results[:0]
 	for _, r := range results {
